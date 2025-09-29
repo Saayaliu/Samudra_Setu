@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samudra Setu | Data Explorer</title>
+    <link rel="icon" type="image/png" href="D:\SIH PROJECT\frontend\images\dolphin.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.css">
+    <style>
+        :root {
+            --deep-space: #0a1a2a;
+            --ocean-deep: #0d2b45;
+            --ocean-mid: #1c4b6d;
+            --ocean-light: #2a7a9d;
+            --accent-teal: #00c9c8;
+            --accent-blue: #00a8ff;
+            --accent-purple: #8a2be2;
+            --text-light: #e6f7ff;
+            --text-muted: #a3d5ff;
+            --card-bg: rgba(16, 34, 54, 0.9);
+            --glow: 0 0 15px rgba(0, 201, 200, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--deep-space), var(--ocean-deep));
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            background: rgba(10, 26, 42, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0, 201, 200, 0.2);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            color: var(--accent-teal);
+            font-size: 2.2rem;
+        }
+
+        .logo span {
+            background: linear-gradient(to right, var(--accent-teal), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+        }
+
+        nav a:hover, nav a.active {
+            background: rgba(0, 201, 200, 0.1);
+            color: var(--accent-teal);
+            box-shadow: var(--glow);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .explorer-hero {
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            background: linear-gradient(rgba(10, 26, 42, 0.7), rgba(13, 43, 69, 0.7));
+        }
+
+        .explorer-hero-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .explorer-hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .explorer-hero h1 span {
+            background: linear-gradient(to right, var(--accent-teal), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .explorer-hero p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Controls Section */
+        .controls-section {
+            padding: 2rem;
+            background: var(--card-bg);
+            margin: 0 2rem;
+            border-radius: 10px;
+            transform: translateY(-50px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 201, 200, 0.2);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: var(--accent-teal);
+            font-size: 0.9rem;
+        }
+
+        .control-select, .control-input {
+            padding: 0.8rem;
+            background: var(--deep-space);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .control-select:focus, .control-input:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 0 2px rgba(0, 201, 200, 0.2);
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--accent-teal), var(--accent-blue));
+            color: var(--deep-space);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 201, 200, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Visualization Section */
+        .visualization-section {
+            padding: 0 2rem 4rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .viz-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .viz-tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .viz-tab.active {
+            color: var(--accent-teal);
+            border-bottom: 3px solid var(--accent-teal);
+        }
+
+        .viz-content {
+            display: none;
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 201, 200, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .viz-content.active {
+            display: block;
+        }
+
+        .viz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .viz-header h3 {
+            color: var(--accent-teal);
+            font-size: 1.5rem;
+        }
+
+        .viz-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chart-container {
+            height: 400px;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        #map-container {
+            height: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th, .data-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .data-table th {
+            color: var(--accent-teal);
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Data Cards */
+        .data-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .data-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid rgba(0, 201, 200, 0.1);
+            transition: all 0.3s;
+        }
+
+        .data-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border-color: var(--accent-teal);
+        }
+
+        .data-card h4 {
+            color: var(--accent-teal);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .data-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .data-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-teal);
+            margin: 0.5rem 0;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--deep-space);
+            padding: 3rem 2rem 1rem;
+            border-top: 1px solid rgba(0, 201, 200, 0.2);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-column h3 {
+            color: var(--accent-teal);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-column a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-column a:hover {
+            color: var(--accent-teal);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-teal);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .explorer-hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .controls-section {
+                margin: 0 1rem;
+                transform: translateY(-30px);
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .viz-tabs {
+                flex-direction: column;
+            }
+            
+            .viz-tab {
+                padding: 0.8rem 1rem;
+            }
+            
+            nav ul {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--deep-space);
+                flex-direction: column;
+                padding: 1rem 0;
+                text-align: center;
+            }
+            
+            nav ul.active {
+                display: flex;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .explorer-hero {
+                padding: 6rem 1rem 3rem;
+            }
+            
+            .explorer-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .visualization-section {
+                padding: 0 1rem 2rem;
+            }
+            
+            .viz-content {
+                padding: 1rem;
+            }
+            
+            #map-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-water"></i>
+                <span>Samudra Setu</span>
+            </div>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="explore.html" class="active">Explore Data</a></li>
+                    <li><a href="research.html">Research</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="explorer-hero">
+        <div class="explorer-hero-content">
+            <h1>Ocean Data <span>Explorer</span></h1>
+            <p>Dive into our comprehensive ocean database. Visualize, analyze, and download marine data from around the world.</p>
+            <div class="btn-group">
+                <a href="#visualizations" class="btn btn-primary">Start Exploring</a>
+                <a href="#" class="btn btn-secondary">Watch Tutorial</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Controls Section -->
+    <section class="controls-section">
+        <div class="controls-grid">
+            <div class="control-group">
+                <label for="data-type">Data Type</label>
+                <select id="data-type" class="control-select">
+                    <option value="temperature">Water Temperature</option>
+                    <option value="salinity">Salinity</option>
+                    <option value="biodiversity">Biodiversity</option>
+                    <option value="fisheries">Fisheries Data</option>
+                    <option value="pollution">Pollution Levels</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="region">Region</label>
+                <select id="region" class="control-select">
+                    <option value="global">Global</option>
+                    <option value="pacific">Pacific Ocean</option>
+                    <option value="atlantic">Atlantic Ocean</option>
+                    <option value="indian">Indian Ocean</option>
+                    <option value="southern">Southern Ocean</option>
+                    <option value="arctic">Arctic Ocean</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="time-range">Time Range</label>
+                <select id="time-range" class="control-select">
+                    <option value="recent">Last 30 Days</option>
+                    <option value="year">Last Year</option>
+                    <option value="5years">Last 5 Years</option>
+                    <option value="decade">Last Decade</option>
+                    <option value="all">All Time</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="depth">Depth Range</label>
+                <select id="depth" class="control-select">
+                    <option value="surface">Surface (0-100m)</option>
+                    <option value="mid">Mid-water (100-1000m)</option>
+                    <option value="deep">Deep Sea (1000m+)</option>
+                    <option value="all">All Depths</option>
+                </select>
+            </div>
+            <div class="control-group" style="grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: flex-end;">
+                <button id="apply-filters" class="btn btn-primary">Apply Filters</button>
+                <button id="reset-filters" class="btn btn-secondary" style="margin-left: 1rem;">Reset</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visualization Section -->
+    <section class="visualization-section" id="visualizations">
+        <div class="viz-tabs">
+            <div class="viz-tab active" data-tab="map">Map View</div>
+            <div class="viz-tab" data-tab="charts">Charts & Graphs</div>
+            <div class="viz-tab" data-tab="table">Data Table</div>
+            <div class="viz-tab" data-tab="insights">AI Insights</div>
+        </div>
+
+        <!-- Map View -->
+        <div class="viz-content active" id="map">
+            <div class="viz-header">
+                <h3>Ocean Data Map</h3>
+                <div class="viz-actions">
+                    <button class="btn btn-secondary" id="download-map">
+                        <i class="fas fa-download"></i> Export Map
+                    </button>
+                </div>
+            </div>
+            <div id="map-container"></div>
+            <div class="data-cards">
+                <div class="data-card">
+                    <h4>Data Points</h4>
+                    <div class="data-value">12,458</div>
+                    <p>Active sensors in selected region</p>
+                </div>
+                <div class="data-card">
+                    <h4>Avg. Temperature</h4>
+                    <div class="data-value">18.7°C</div>
+                    <p>Across selected area</p>
+                </div>
+                <div class="data-card">
+                    <h4>Species Count</h4>
+                    <div class="data-value">1,247</div>
+                    <p>Marine species recorded</p>
+                </div>
+                <div class="data-card">
+                    <h4>Data Coverage</h4>
+                    <div class="data-value">78%</div>
+                    <p>Of selected region</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts View -->
+        <div class="viz-content" id="charts">
+            <div class="viz-header">
+                <h3>Data Visualizations</h3>
+                <div class="viz-actions">
+                    <select id="chart-type" class="control-select">
+                        <option value="line">Line Chart</option>
+                        <option value="bar">Bar Chart</option>
+                        <option value="scatter">Scatter Plot</option>
+                        <option value="heatmap">Heat Map</option>
+                    </select>
+                    <button class="btn btn-secondary" id="download-chart">
+                        <i class="fas fa-download"></i> Export Chart
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="dataChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="secondaryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="viz-content" id="table">
+            <div class="viz-header">
+                <h3>Data Table</h3>
+                <div class="viz-actions">
+                    <button class="btn btn-secondary" id="download-csv">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th>Date</th>
+                        <th>Temperature (°C)</th>
+                        <th>Salinity (PSU)</th>
+                        <th>Species Count</th>
+                        <th>Data Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Pacific, 15°N 120°W</td>
+                        <td>2023-10-15</td>
+                        <td>25.3</td>
+                        <td>34.5</td>
+                        <td>42</td>
+                        <td>NOAA Buoy</td>
+                    </tr>
+                    <tr>
+                        <td>Atlantic, 30°N 45°W</td>
+                        <td>2023-10-14</td>
+                        <td>22.1</td>
+                        <td>36.2</td>
+                        <td>38</td>
+                        <td>Research Vessel</td>
+                    </tr>
+                    <tr>
+                        <td>Indian Ocean, 10°S 70°E</td>
+                        <td>2023-10-13</td>
+                        <td>28.7</td>
+                        <td>35.1</td>
+                        <td>56</td>
+                        <td>Satellite</td>
+                    </tr>
+                    <tr>
+                        <td>Southern Ocean, 60°S 30°W</td>
+                        <td>2023-10-12</td>
+                        <td>3.2</td>
+                        <td>33.8</td>
+                        <td>24</td>
+                        <td>Argo Float</td>
+                    </tr>
+                    <tr>
+                        <td>Arctic, 75°N 150°W</td>
+                        <td>2023-10-11</td>
+                        <td>-1.5</td>
+                        <td>30.2</td>
+                        <td>18</td>
+                        <td>Ice Station</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- AI Insights View -->
+        <div class="viz-content" id="insights">
+            <div class="viz-header">
+                <h3>AI-Generated Insights</h3>
+                <div class="viz-actions">
+                    <button class="btn btn-primary" id="generate-insights">
+                        <i class="fas fa-robot"></i> Generate New Insights
+                    </button>
+                </div>
+            </div>
+            <div class="data-cards">
+                <div class="data-card">
+                    <h4><i class="fas fa-temperature-high"></i> Temperature Trend</h4>
+                    <p>Sea surface temperatures have increased by 0.8°C over the past decade in the selected region, exceeding global averages.</p>
+                    <div class="data-value">+0.8°C</div>
+                </div>
+                <div class="data-card">
+                    <h4><i class="fas fa-fish"></i> Biodiversity Alert</h4>
+                    <p>Coral reef ecosystems show a 15% decline in species diversity compared to 5 years ago. Primary cause: ocean acidification.</p>
+                    <div class="data-value">-15%</div>
+                </div>
+                <div class="data-card">
+                    <h4><i class="fas fa-water"></i> Pollution Hotspot</h4>
+                    <p>Microplastic concentration has tripled in coastal areas near urban centers. Recommend targeted cleanup initiatives.</p>
+                    <div class="data-value">3x</div>
+                </div>
+                <div class="data-card">
+                    <h4><i class="fas fa-chart-line"></i> Fisheries Forecast</h4>
+                    <p>Tuna migration patterns shifting northward by 150km annually. Adjust fishing quotas for sustainable harvest.</p>
+                    <div class="data-value">150km/yr</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="insightsChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <h3>Samudra Setu</h3>
+                <p>Bridging data and discovery for ocean conservation.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Platform</h3>
+                <ul>
+                    <li><a href="features.html">Features</a></li>
+                    <li><a href="pricing.html">Pricing</a></li>
+                    <li><a href="api.html">API</a></li>
+                    <li><a href="case-studies.html">Case Studies</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="research.html">Research Papers</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="webinars.html">Webinars</a></li>
+                    <li><a href="documentation.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Contact</h3>
+                <ul>
+                    <li><a href="contact.html">Contact Us</a></li>
+                    <li><a href="partnerships.html">Partnerships</a></li>
+                    <li><a href="careers.html">Careers</a></li>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2023 Samudra Setu. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navMenu = document.querySelector('nav ul');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+
+        // Tab Functionality
+        const vizTabs = document.querySelectorAll('.viz-tab');
+        const vizContents = document.querySelectorAll('.viz-content');
+
+        vizTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                vizTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                vizContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                        
+                        // Initialize map when map tab is activated
+                        if (tabId === 'map' && !window.mapInitialized) {
+                            initMap();
+                            window.mapInitialized = true;
+                        }
+                    }
+                });
+            });
+        });
+
+        // Initialize Map
+        function initMap() {
+            const map = L.map('map-container').setView([20, 0], 2);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Add some sample data points
+            const dataPoints = [
+                { lat: 35, lng: -120, value: 18.5, type: 'temperature' },
+                { lat: -15, lng: -50, value: 26.2, type: 'temperature' },
+                { lat: 45, lng: 150, value: 12.8, type: 'temperature' },
+                { lat: -30, lng: 80, value: 22.1, type: 'temperature' },
+                { lat: 60, lng: -30, value: 5.3, type: 'temperature' }
+            ];
+            
+            dataPoints.forEach(point => {
+                const color = point.value > 20 ? '#ff6b6b' : 
+                             point.value > 10 ? '#4ecdc4' : '#45b7d1';
+                
+                L.circleMarker([point.lat, point.lng], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.7,
+                    radius: 8
+                }).addTo(map).bindPopup(`
+                    <b>Location:</b> ${point.lat}°, ${point.lng}°<br>
+                    <b>Temperature:</b> ${point.value}°C<br>
+                    <b>Data Type:</b> ${point.type}
+                `);
+            });
+            
+            // Add a legend
+            const legend = L.control({ position: 'bottomright' });
+            legend.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'info legend');
+                div.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                div.style.padding = '10px';
+                div.style.color = 'white';
+                div.style.borderRadius = '5px';
+                div.innerHTML = `
+                    <h4>Temperature (°C)</h4>
+                    <div><i style="background:#45b7d1; width: 15px; height: 15px; display: inline-block; margin-right: 5px;"></i> < 10°C</div>
+                    <div><i style="background:#4ecdc4; width: 15px; height: 15px; display: inline-block; margin-right: 5px;"></i> 10-20°C</div>
+                    <div><i style="background:#ff6b6b; width: 15px; height: 15px; display: inline-block; margin-right: 5px;"></i> > 20°C</div>
+                `;
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        // Initialize Charts
+        const dataCtx = document.getElementById('dataChart').getContext('2d');
+        const dataChart = new Chart(dataCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Sea Surface Temperature (°C)',
+                    data: [16, 16.5, 17, 17.8, 18.5, 19.2, 20.1, 20.5, 19.8, 18.5, 17.2, 16.3],
+                    borderColor: 'rgba(0, 201, 200, 1)',
+                    backgroundColor: 'rgba(0, 201, 200, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                }
+            }
+        });
+
+        const secondaryCtx = document.getElementById('secondaryChart').getContext('2d');
+        const secondaryChart = new Chart(secondaryCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Coral Reefs', 'Open Ocean', 'Deep Sea', 'Coastal', 'Polar'],
+                datasets: [{
+                    label: 'Species Diversity Index',
+                    data: [8.2, 6.5, 4.3, 7.8, 5.1],
+                    backgroundColor: [
+                        'rgba(0, 201, 200, 0.7)',
+                        'rgba(0, 168, 255, 0.7)',
+                        'rgba(42, 122, 157, 0.7)',
+                        'rgba(28, 75, 109, 0.7)',
+                        'rgba(138, 43, 226, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(0, 201, 200, 1)',
+                        'rgba(0, 168, 255, 1)',
+                        'rgba(42, 122, 157, 1)',
+                        'rgba(28, 75, 109, 1)',
+                        'rgba(138, 43, 226, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                }
+            }
+        });
+
+        const insightsCtx = document.getElementById('insightsChart').getContext('2d');
+        const insightsChart = new Chart(insightsCtx, {
+            type: 'line',
+            data: {
+                labels: ['2018', '2019', '2020', '2021', '2022', '2023'],
+                datasets: [{
+                    label: 'Coral Reef Health Index',
+                    data: [85, 82, 78, 75, 72, 70],
+                    borderColor: 'rgba(255, 107, 107, 1)',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Ocean Temperature Anomaly (°C)',
+                    data: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                    borderColor: 'rgba(0, 201, 200, 1)',
+                    backgroundColor: 'rgba(0, 201, 200, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Filter functionality
+        document.getElementById('apply-filters').addEventListener('click', function() {
+            const dataType = document.getElementById('data-type').value;
+            const region = document.getElementById('region').value;
+            const timeRange = document.getElementById('time-range').value;
+            const depth = document.getElementById('depth').value;
+            
+            // Show loading state
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
+            
+            // Simulate API call
+            setTimeout(() => {
+                this.innerHTML = 'Apply Filters';
+                alert(`Filters applied:\n- Data Type: ${dataType}\n- Region: ${region}\n- Time Range: ${timeRange}\n- Depth: ${depth}`);
+                
+                // Update charts with new data based on filters
+                updateCharts(dataType, region);
+            }, 1500);
+        });
+
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            document.getElementById('data-type').value = 'temperature';
+            document.getElementById('region').value = 'global';
+            document.getElementById('time-range').value = 'recent';
+            document.getElementById('depth').value = 'surface';
+            
+            alert('Filters reset to default values');
+            updateCharts('temperature', 'global');
+        });
+
+        // Chart type switcher
+        document.getElementById('chart-type').addEventListener('change', function() {
+            const chartType = this.value;
+            dataChart.config.type = chartType;
+            dataChart.update();
+        });
+
+        // Export functionality
+        document.getElementById('download-map').addEventListener('click', function() {
+            alert('Map exported as PNG image');
+        });
+
+        document.getElementById('download-chart').addEventListener('click', function() {
+            alert('Chart data exported as PNG image');
+        });
+
+        document.getElementById('download-csv').addEventListener('click', function() {
+            alert('Data table exported as CSV file');
+        });
+
+        // AI Insights generation
+        document.getElementById('generate-insights').addEventListener('click', function() {
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-robot"></i> Generate New Insights';
+                alert('New AI insights generated based on current data filters');
+            }, 2000);
+        });
+
+        // Function to update charts based on filters
+        function updateCharts(dataType, region) {
+            // This would normally fetch new data from an API
+            // For demo purposes, we'll just show a message
+            console.log(`Updating charts for ${dataType} data in ${region} region`);
+        }
+
+        // Initialize the page with the map tab active
+        window.mapInitialized = false;
+        document.querySelector('.viz-tab[data-tab="map"]').click();
+    </script>
+</body>
+</html>

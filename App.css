@@ -1,0 +1,230 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+/* --- Color Variables and Global Styles --- */
+:root {
+  --color-dark-bg: #111827; /* Dark background (Almost Black) */
+  --color-card-bg: #1F2937; /* Dark Slate Blue/Gray for cards */
+  --color-primary: #10B981; /* Soft Emerald Green for highlights */
+  --color-secondary: #FBBF24; /* Amber/Yellow for confidence/accents */
+  --color-text-light: #f9fafb; /* Light text */
+  --color-text-subtle: #9ca3af; /* Subtle gray text */
+  --color-error: #EF4444; /* Red for errors */
+  --color-border: #374151; /* Border color */
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-dark-bg);
+  color: var(--color-text-light);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align to the top */
+  min-height: 100vh;
+}
+
+.App {
+  width: 95%;
+  max-width: 1100px;
+  margin: 40px auto; /* Centered with vertical margin */
+  background-color: var(--color-dark-bg);
+  border-radius: 16px;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  position: relative; /* Container for absolute logo */
+}
+
+/* --- Logo Styling and Animation --- */
+.logo-container {
+  position: absolute;
+  top: 25px; /* Adjust as needed */
+  left: 35px; /* Adjust as needed */
+  z-index: 10;
+  width: 70px; /* Slightly larger logo */
+  height: 70px;
+  border-radius: 50%; /* Circular shape */
+  border: 3px solid var(--color-primary); /* Green border */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  animation: floating 4s ease-in-out infinite; /* Slower, smoother float */
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.logo-container:hover {
+  transform: scale(1.05);
+}
+
+.logo-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes floating {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); } /* Moves up 10px */
+  100% { transform: translateY(0); }
+}
+
+/* --- Header & Title --- */
+.header {
+  padding: 40px 40px 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+
+.header p {
+  color: var(--color-text-subtle);
+  font-size: 1.1rem;
+}
+
+/* --- Main Content Layout --- */
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr; /* Single column on small screens */
+  gap: 40px;
+  padding: 40px;
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    grid-template-columns: 1.2fr 1fr; /* Preview side slightly wider on larger screens */
+  }
+}
+
+/* --- Panes --- */
+.upload-pane, .results-pane {
+  background-color: var(--color-card-bg);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Upload Box and Preview --- */
+.upload-box {
+  width: 90%;
+  min-height: 180px;
+  border: 3px dashed var(--color-border);
+  border-radius: 10px;
+  padding: 30px;
+  margin-bottom: 25px;
+  cursor: pointer;
+  transition: border-color 0.3s, background-color 0.3s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.upload-box:hover {
+  border-color: var(--color-primary);
+  background-color: #27303e; /* Slightly lighter on hover */
+}
+
+.upload-box input[type="file"] {
+  display: none; /* Hide default file input */
+}
+
+.upload-box-text {
+  font-size: 1.1rem;
+  color: var(--color-text-subtle);
+  margin-top: 15px;
+}
+
+.image-preview {
+  width: 100%;
+  max-height: 350px;
+  object-fit: contain; /* Ensure image fits without cropping */
+  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  margin-top: 15px;
+}
+
+/* --- Button Styling --- */
+.predict-button {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--color-primary);
+  color: var(--color-dark-bg); /* Dark text on green button */
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.1s;
+  margin-top: 25px;
+}
+
+.predict-button:hover:not(:disabled) {
+  background-color: #059669; /* Darker green on hover */
+  transform: translateY(-1px); /* Slight lift effect */
+}
+
+.predict-button:disabled {
+  background-color: var(--color-border);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* --- Results Pane --- */
+.results-pane h2 {
+  font-size: 1.6rem;
+  color: var(--color-secondary);
+  border-bottom: 1px dashed var(--color-border);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #2d3748; /* Slightly lighter border for separation */
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+}
+
+.prediction-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+}
+
+.confidence-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+}
+
+.prediction-error {
+  color: var(--color-error); /* Red color for error text */
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* --- Loading and Error Messages --- */
+.loading-message {
+  text-align: center;
+  padding: 50px 0;
+  color: var(--color-primary);
+  font-size: 1.2rem;
+}
